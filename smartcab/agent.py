@@ -20,7 +20,7 @@ class LearningAgent(Agent):
         self.action_0 = None
         self.reward_0 = 0
 
-        self.discounting = 0.5
+        self.discounting = 0
         self.learning_rate = 0.5
         self.epsilon = 0.2
 
@@ -45,7 +45,7 @@ class LearningAgent(Agent):
 
         def update_qValue(state_0, action_0, reward_0, state, 
                           gamma = self.discounting, alpha = self.learning_rate):
-            # using current state to update the q value of the previous state
+            # using current state to update the q(s_0, a_0)
             qValue = get_qValue(state_0, action_0)
             qValue = (1 - alpha) * qValue + alpha * reward_0
             for action in self.actions:
@@ -63,7 +63,7 @@ class LearningAgent(Agent):
         update_qValue(self.state_0, self.action_0, self.reward_0, self.state)
 
         # Select action according to your policy
-        if  random.random < self.epsilon:
+        if  random.random() < self.epsilon:
             action = randomMove()
         else:
             max_qValue = -100
@@ -72,9 +72,20 @@ class LearningAgent(Agent):
                 if value >= max_qValue:
                     action = choice
                     max_qValue = value
+        
+        #[debug]
+        # print ' '
+        # for choice in self.actions:
+        #     print get_qValue(self.state_0, choice)
+        # print self.state_0
+        # print self.action_0
+        # print self.state
+        # print action
+        # print self.reward_0
 
         # Execute action and get reward
         reward = self.env.act(self, action)
+
 
         # Store s, a r for next iteration
         self.state_0 = {'next_waypoint': self.next_waypoint, 
@@ -84,7 +95,9 @@ class LearningAgent(Agent):
                       'oncoming': inputs['oncoming']}
         self.action_0 = action
         self.reward_0 = reward
-        # print "LearningAgent.update(): deadline = {}, state = {}, action = {}, reward = {}".format(deadline, self.state, action, reward)  # [debug]
+
+
+        #print "LearningAgent.update(): deadline = {}, state = {}, action = {}, reward = {}".format(deadline, self.state, action, reward)  # [debug]
 
 
 def run():
