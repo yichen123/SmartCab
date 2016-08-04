@@ -30,8 +30,7 @@ class LearningAgent(Agent):
         inputs = self.env.sense(self)
         deadline = self.env.get_deadline(self)
         self.actions = self.env.valid_actions
-        self.state = {'next_waypoint': self.next_waypoint, inputs}
-        print state_pos
+        self.state = {'next_waypoint': self.next_waypoint, 'env': inputs}
 
         # helper functions
         def randomMove():
