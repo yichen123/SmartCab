@@ -20,8 +20,8 @@ class LearningAgent(Agent):
         self.action_0 = None
         self.reward_0 = 0
 
-        self.discounting = 0
-        self.learning_rate = 0.5
+        self.discounting = 0.3
+        self.learning_rate = 0.7
         self.epsilon = 0.2
 
     def reset(self, destination=None):
@@ -43,13 +43,24 @@ class LearningAgent(Agent):
         def get_qValue(state, action):
             return self.qTable[str((state, action))]
 
+        def get_max_qValue(state):
+            action = None
+            max_value = get_qValue(state, None)
+            for choice in ['left', 'right', 'forward']:
+                value = get_qValue(state, choice) 
+                if value >= max_value:
+                    action = choice
+                    max_value = value
+            return action
+
+
         def update_qValue(state_0, action_0, reward_0, state, 
                           gamma = self.discounting, alpha = self.learning_rate):
             # using current state to update the q(s_0, a_0)
             qValue = get_qValue(state_0, action_0)
             qValue = (1 - alpha) * qValue + alpha * reward_0
-            for action in self.actions:
-                qValue += alpha * gamma * get_qValue(state, action)
+            max_action = get_max_qValue(state)
+            qValue += gamma * alpha * get_qValue(state, max_action)
             self.qTable[str((state_0, action_0))] = qValue
 
         # Update state
@@ -66,12 +77,7 @@ class LearningAgent(Agent):
         if  random.random() < self.epsilon:
             action = randomMove()
         else:
-            max_qValue = -100
-            for choice in self.actions:
-                value = get_qValue(self.state, choice) 
-                if value >= max_qValue:
-                    action = choice
-                    max_qValue = value
+            action = get_max_qValue(self.state)
         
         #[debug]
         # print ' '
