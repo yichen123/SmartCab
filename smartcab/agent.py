@@ -2,6 +2,7 @@ import random
 from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
+from collections import defaultdict
 
 class LearningAgent(Agent):
     """An agent that learns to drive in the smartcab world."""
@@ -12,6 +13,11 @@ class LearningAgent(Agent):
         self.planner = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         # TODO: Initialize any additional variables here
         self.success = 0
+        self.qTable = defaultdict(int)
+        self.state_0 = None
+
+        self.discounting = 0.5
+        self.learning_rate = 0.5
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
@@ -24,10 +30,25 @@ class LearningAgent(Agent):
         inputs = self.env.sense(self)
         deadline = self.env.get_deadline(self)
         self.actions = self.env.valid_actions
+        self.state = {'next_waypoint': self.next_waypoint, inputs}
+        print state_pos
 
         # helper functions
         def randomMove():
             return random.choice(self.actions)
+
+        def get_qValue(state, action):
+            return self.qtable[str((state, action))]
+
+        def update_qValue(state_0, action_0, reward_0, state, 
+                          gamma = self.discounting, alpha = self.learning_rate):
+            # using current state to update the q value of the previous state
+            qValue = get_qValue(state_0, action_0)
+            qValue = (1 - alpha) * qValue + alpha * reward_0
+            for action in self.valid_actions:
+                qValue += alpha * gamma * get_qValue(state, action)
+            self.qTable[str((state_0, action_0))] = qValue
+
         # TODO: Update state
         
         # TODO: Select action according to your policy
@@ -57,7 +78,7 @@ def run():
     sim = Simulator(e, update_delay=0.00, display=False)  # create simulator (uses pygame when display=True, if available)
     # NOTE: To speed up simulation, reduce update_delay and/or set display=False
 
-    sim.run(n_trials=100)  # run for a specified number of trials
+    sim.run(n_trials=1)  # run for a specified number of trials
     # NOTE: To quit midway, press Esc or close pygame window, or hit Ctrl+C on the command-line
 
 
