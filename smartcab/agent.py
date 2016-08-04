@@ -2,6 +2,7 @@ import random
 from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
+from collections import defaultdict
 
 class LearningAgent(Agent):
     """An agent that learns to drive in the smartcab world."""
@@ -11,7 +12,17 @@ class LearningAgent(Agent):
         self.color = 'red'  # override color
         self.planner = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         # TODO: Initialize any additional variables here
+        self.actions = self.env.valid_actions
         self.success = 0
+        self.qTable = defaultdict(int)
+
+        self.state_0 = None
+        self.action_0 = None
+        self.reward_0 = 0
+
+        self.discounting = 0
+        self.learning_rate = 0.5
+        self.epsilon = 0.2
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
@@ -23,25 +34,70 @@ class LearningAgent(Agent):
         self.next_waypoint = self.planner.next_waypoint()  # from route planner, also displayed by simulator
         inputs = self.env.sense(self)
         deadline = self.env.get_deadline(self)
-        self.actions = self.env.valid_actions
+        action = None
 
         # helper functions
         def randomMove():
             return random.choice(self.actions)
-        # TODO: Update state
+
+        def get_qValue(state, action):
+            return self.qTable[str((state, action))]
+
+        def update_qValue(state_0, action_0, reward_0, state, 
+                          gamma = self.discounting, alpha = self.learning_rate):
+            # using current state to update the q(s_0, a_0)
+            qValue = get_qValue(state_0, action_0)
+            qValue = (1 - alpha) * qValue + alpha * reward_0
+            for action in self.actions:
+                qValue += alpha * gamma * get_qValue(state, action)
+            self.qTable[str((state_0, action_0))] = qValue
+
+        # Update state
+        self.state = {'next_waypoint': self.next_waypoint, 
+                      'light': inputs['light'],
+                      'left': inputs['left'],
+                      'right': inputs['right'], 
+                      'oncoming': inputs['oncoming']}
+
+        # Update policy based on previous state 
+        update_qValue(self.state_0, self.action_0, self.reward_0, self.state)
+
+        # Select action according to your policy
+        if  random.random() < self.epsilon:
+            action = randomMove()
+        else:
+            max_qValue = -100
+            for choice in self.actions:
+                value = get_qValue(self.state, choice) 
+                if value >= max_qValue:
+                    action = choice
+                    max_qValue = value
         
-        # TODO: Select action according to your policy
-
-
-
-        action = randomMove()
+        #[debug]
+        # print ' '
+        # for choice in self.actions:
+        #     print get_qValue(self.state_0, choice)
+        # print self.state_0
+        # print self.action_0
+        # print self.state
+        # print action
+        # print self.reward_0
 
         # Execute action and get reward
         reward = self.env.act(self, action)
 
-        # TODO: Learn policy based on state, action, reward
 
-        # print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, action, reward)  # [debug]
+        # Store s, a r for next iteration
+        self.state_0 = {'next_waypoint': self.next_waypoint, 
+                      'light': inputs['light'],
+                      'left': inputs['left'],
+                      'right': inputs['right'], 
+                      'oncoming': inputs['oncoming']}
+        self.action_0 = action
+        self.reward_0 = reward
+
+
+        #print "LearningAgent.update(): deadline = {}, state = {}, action = {}, reward = {}".format(deadline, self.state, action, reward)  # [debug]
 
 
 def run():
