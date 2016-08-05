@@ -20,9 +20,9 @@ class LearningAgent(Agent):
         self.action_0 = None
         self.reward_0 = 0
 
-        self.discounting = 0.3
-        self.learning_rate = 0.7
-        self.epsilon = 0.2
+        self.discounting = 0.1
+        self.learning_rate = 0.1
+        self.epsilon = 0.03
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
@@ -91,7 +91,8 @@ class LearningAgent(Agent):
 
         # Execute action and get reward
         reward = self.env.act(self, action)
-
+        if reward > 5:
+            self.success += 1
 
         # Store s, a r for next iteration
         self.state_0 = {'next_waypoint': self.next_waypoint, 
