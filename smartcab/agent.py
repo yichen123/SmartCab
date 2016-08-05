@@ -84,7 +84,7 @@ class LearningAgent(Agent):
         else:
             action = get_max_action(self.state)
         
-        #[debug]
+    #[debug]
         # print ' '
         # for choice in self.actions:
         #     print get_qValue(self.state_0, choice)
@@ -93,6 +93,7 @@ class LearningAgent(Agent):
         # print self.state
         # print action
         # print self.reward_0
+    #[debug]
 
         # Execute action and get reward
         reward = self.env.act(self, action)
@@ -110,9 +111,7 @@ class LearningAgent(Agent):
         self.action_0 = action
         self.reward_0 = reward
 
-
         #print "LearningAgent.update(): deadline = {}, state = {}, action = {}, reward = {}".format(deadline, self.state, action, reward)  # [debug]
-
 
 def run():
     """Run the agent for a finite number of trials."""
