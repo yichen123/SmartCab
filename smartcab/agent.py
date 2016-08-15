@@ -66,7 +66,7 @@ class LearningAgent(Agent):
             return action
 
         def update_qTable(state_0, action_0, reward_0, state, 
-                          gamma = DISCOUNTING, alpha = LEARNING_RATE):
+                          gamma = DISCOUNTING, alpha = LEARNING_RATE / (self.trail_number + 1)):
             # using current state to update the q(s_0, a_0)
             qValue = get_qValue(state_0, action_0)
             qValue = (1 - alpha) * qValue + alpha * reward_0
@@ -97,7 +97,7 @@ class LearningAgent(Agent):
         update_qTable(self.state_0, self.action_0, self.reward_0, self.state)
 
         # Select action according to your policy
-        if  random.random() < EPSILON:
+        if  random.random() < EPSILON / (self.trail_number + 1):
             action = randomMove()
         else:
             action = get_max_action(self.state)
@@ -144,6 +144,12 @@ class LearningAgent(Agent):
         self.reward_0 = reward
 
         #print "LearningAgent.update(): deadline = {}, state = {}, action = {}, reward = {}".format(deadline, self.state, action, reward)  # [debug]
+        if self.trail_number > 90:
+            print 'input: ' + str(inputs)
+            print 'next_waypoint: ' + str(self.next_waypoint)
+            print 'action: ' + str(action)
+            print ' '
+
 
 def run():
     """Run the agent for a finite number of trials."""
